@@ -1,8 +1,5 @@
 // product.js
-// Renders products, search, and cart system with persistence
-// Also includes a robust sidenav handler so menu works correctly on this page.
 
-// ------- Product data (12 products) -------
 const PRODUCTS = [
   { id: 'p1', title: 'Monstera Deliciosa', price: 2500, img: './images/5.jpg' },
   { id: 'p2', title: 'Spider Plant', price: 800, img: './images/6.jpg' },
@@ -355,8 +352,6 @@ window.addEventListener('storage', (e) => {
   }
 });
 
-// custom event usage: update mini cart in same tab (index.js listens for storage; but index.js may not be loaded on this page)
-// dispatch greenden_cart_updated when cart changes
 window.addEventListener('greenden_cart_updated', () => {
   const cart = getCart();
   const totalQty = cart.reduce((s, it) => s + it.qty, 0);
