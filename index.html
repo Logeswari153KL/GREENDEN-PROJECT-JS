@@ -7,13 +7,16 @@
 
   <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-green-50 text-gray-800 antialiased">
 
   <!-- NAVBAR -->
   <nav class="bg-green-600 text-white px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
     <div class="flex items-center gap-4">
-      <a href="index.html" class="font-semibold text-lg">GREENDEN</a>
+      <a href="index.html" class="font-semibold text-lg uppercase">GREENDEN</a>
     </div>
 
     <div class="flex items-center gap-4">
@@ -28,7 +31,8 @@
       </button>
 
       <a href="product.html" class="ml-2 inline-flex items-center gap-2 bg-white text-green-700 px-3 py-1 rounded hover:shadow-md">
-        Cart
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="sr-only">Cart</span>
         <span id="miniCartCount" class="bg-green-100 text-green-800 text-sm font-medium px-2 py-0.5 rounded">0</span>
       </a>
     </div>
@@ -42,9 +46,9 @@
       <button id="closenav" class="menu-close focus:outline-none" aria-label="Close">✕</button>
     </div>
     <nav class="flex flex-col gap-4 p-4">
-      <a href="index.html" class="py-2 px-3 rounded hover:bg-green-600">Home</a>
-      <a href="product.html" class="py-2 px-3 rounded hover:bg-green-600">Products</a>
-      <a href="contact.html" class="py-2 px-3 rounded hover:bg-green-600">Contact</a>
+      <a href="index.html" class="py-2 px-3 rounded hover:bg-green-600 nav-link">Home</a>
+      <a href="product.html" class="py-2 px-3 rounded hover:bg-green-600 nav-link">Products</a>
+      <a href="contact.html" class="py-2 px-3 rounded hover:bg-green-600 nav-link">Contact</a>
     </nav>
   </aside>
 
@@ -61,8 +65,9 @@
         <p class="text-sm text-gray-600">160+ plant species • 500+ happy customers</p>
       </div>
 
-      <div class="hidden md:flex justify-end">
-        <img src="images/header.jpg" alt="Plants on table" class="w-96 h-64 object-cover rounded-2xl shadow-lg transform transition hover:scale-105 hover:rotate-1">
+      <div class="flex justify-end">
+        <!-- use responsive sizing so desktop fits and mobile keeps aspect -->
+        <img src="images/header.jpg" alt="Plants on table" class="max-w-full w-full md:w-96 h-auto object-cover rounded-2xl shadow-lg transform transition hover:scale-105 hover:rotate-1">
       </div>
     </div>
   </header>
@@ -91,7 +96,7 @@
   <!-- BEST SELLERS -->
   <section class="max-w-6xl mx-auto px-6 py-8">
     <h2 class="text-2xl font-semibold text-green-900 mb-4">Best Sellers</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
       <div class="bg-white p-4 rounded-xl text-center shadow hover:shadow-2xl transition transform hover:-translate-y-1">
         <img src="images/1.jpg" alt="Fuchsia" class="w-full h-36 object-cover rounded-lg mb-3 shadow-lg">
         <h4 class="font-medium">Fuchsia</h4>

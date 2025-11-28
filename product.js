@@ -1,7 +1,8 @@
 // product.js
 // Renders products, search, and cart system with persistence
+// Also includes a robust sidenav handler so menu works correctly on this page.
 
-// ------- Product data (10 products minimum) -------
+// ------- Product data (12 products) -------
 const PRODUCTS = [
   { id: 'p1', title: 'Monstera Deliciosa', price: 2500, img: './images/5.jpg' },
   { id: 'p2', title: 'Spider Plant', price: 800, img: './images/6.jpg' },
@@ -13,7 +14,6 @@ const PRODUCTS = [
   { id: 'p8', title: 'Areca Palm', price: 1500, img: './images/12.jpg' },
   { id: 'p9', title: 'Calathea', price: 1100, img: './images/13.jpg' },
   { id: 'p10', title: 'Rubber Plant', price: 1800, img: './images/14.jpg' },
-  // optional extras
   { id: 'p11', title: 'ZZ Plant', price: 1400, img: './images/15.jpg' },
   { id: 'p12', title: 'Philodendron', price: 900, img: './images/16.jpg' }
 ];
@@ -27,31 +27,95 @@ function getCart() {
   return JSON.parse(localStorage.getItem('greenden_cart') || '[]');
 }
 function saveCart(cart) {
+  // Persist cart
   localStorage.setItem('greenden_cart', JSON.stringify(cart));
-  // notify other tabs/pages
-  window.dispatchEvent(new StorageEvent('storage', { key: 'greenden_cart', newValue: JSON.stringify(cart) }));
+  // No manual StorageEvent dispatch required; other tabs will receive native "storage".
+  // If you need to trigger same-tab handlers, call a local update function directly.
 }
+
+// ------- Sidenav (same behaviour as index.js) -------
+(function initSidenav() {
+  const menuicon = document.getElementById('menuicon');
+  const sidenav = document.getElementById('sidenav');
+  const closenav = document.getElementById('closenav');
+  if (!sidenav) return;
+
+  if (!sidenav.classList.contains('translate-x-full') && !sidenav.classList.contains('translate-x-0')) {
+    sidenav.classList.add('translate-x-full');
+  }
+
+  function openMenu() {
+    sidenav.classList.remove('translate-x-full');
+    sidenav.classList.add('translate-x-0');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    sidenav.classList.add('translate-x-full');
+    sidenav.classList.remove('translate-x-0');
+    document.body.style.overflow = '';
+  }
+
+  if (menuicon) {
+    menuicon.addEventListener('click', (e) => { e.preventDefault(); openMenu(); }, { passive: false });
+    menuicon.addEventListener('touchstart', (e) => { e.preventDefault(); openMenu(); }, { passive: false });
+  }
+  if (closenav) {
+    closenav.addEventListener('click', (e) => { e.preventDefault(); closeMenu(); });
+    closenav.addEventListener('touchstart', (e) => { e.preventDefault(); closeMenu(); }, { passive: false });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!sidenav.classList.contains('translate-x-full')) {
+      if (!sidenav.contains(e.target) && e.target !== menuicon && !menuicon.contains(e.target)) {
+        closeMenu();
+      }
+    }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+  window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMenu(); });
+
+  // nav links close and navigate
+  const navLinks = sidenav.querySelectorAll('.nav-link');
+  navLinks.forEach(a => {
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const href = a.getAttribute('href');
+      closeMenu();
+      setTimeout(() => { window.location.href = href; }, 160);
+    });
+    a.addEventListener('touchstart', (ev) => {
+      ev.preventDefault();
+      const href = a.getAttribute('href');
+      closeMenu();
+      setTimeout(() => { window.location.href = href; }, 160);
+    }, { passive: false });
+  });
+})();
 
 // ------- Render products to DOM -------
 const productContainer = document.getElementById('product-container');
+const bestSellersContainer = document.getElementById('best-sellers');
+
+function createProductCard(p) {
+  // keep markup compact and mobile-friendly (1 column on phone)
+  const card = document.createElement('div');
+  card.className = 'bg-white p-4 rounded-xl shadow hover:shadow-2xl transition transform hover:-translate-y-1 flex flex-col';
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.title}" class="w-full h-40 sm:h-44 md:h-40 object-cover rounded-lg mb-3 shadow-lg">
+    <h3 class="font-medium">${p.title}</h3>
+    <p class="mt-1 font-semibold">${formatINR(p.price)}</p>
+    <div class="mt-3 flex gap-2">
+      <button data-id="${p.id}" class="addCartBtn flex-1 bg-green-700 text-white py-2 rounded hover:bg-green-800 transition">Add to Cart</button>
+      <button data-id="${p.id}" class="buyNowBtn flex-1 border border-green-700 py-2 rounded hover:bg-green-50 transition">Buy Now</button>
+    </div>
+  `;
+  return card;
+}
 
 function renderProducts(list) {
+  if (!productContainer) return;
   productContainer.innerHTML = '';
-  list.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'bg-white p-4 rounded-xl shadow hover:shadow-2xl transition transform hover:-translate-y-1 flex flex-col';
-
-    card.innerHTML = `
-      <img src="${p.img}" alt="${p.title}" class="w-full h-40 object-cover rounded-lg mb-3 shadow-lg">
-      <h3 class="font-medium">${p.title}</h3>
-      <p class="mt-1 font-semibold">${formatINR(p.price)}</p>
-      <div class="mt-3 flex gap-2">
-        <button data-id="${p.id}" class="addCartBtn flex-1 bg-green-700 text-white py-2 rounded hover:bg-green-800 transition">Add to Cart</button>
-        <button data-id="${p.id}" class="buyNowBtn flex-1 border border-green-700 py-2 rounded hover:bg-green-50 transition">Buy Now</button>
-      </div>
-    `;
-    productContainer.appendChild(card);
-  });
+  list.forEach(p => productContainer.appendChild(createProductCard(p)));
 
   // attach listeners
   document.querySelectorAll('.addCartBtn').forEach(btn => {
@@ -62,20 +126,41 @@ function renderProducts(list) {
   });
 }
 
+// render best sellers (first 4)
+function renderBestSellers() {
+  if (!bestSellersContainer) return;
+  bestSellersContainer.innerHTML = '';
+  const sellers = PRODUCTS.slice(0, 4);
+  sellers.forEach(p => {
+    const box = document.createElement('div');
+    box.className = 'bg-white p-4 rounded-xl text-center shadow hover:shadow-2xl transition transform hover:-translate-y-1';
+    box.innerHTML = `
+      <img src="${p.img}" alt="${p.title}" class="w-full h-36 object-cover rounded-lg mb-3 shadow-lg">
+      <h4 class="font-medium">${p.title}</h4>
+      <p class="mt-1 font-semibold">${formatINR(p.price)}</p>
+    `;
+    bestSellersContainer.appendChild(box);
+  });
+}
+
 // initial render
 renderProducts(PRODUCTS);
+renderBestSellers();
 
 // ------- Search with debounce -------
 const search = document.getElementById('search');
 let debounce;
-search.addEventListener('input', (e) => {
-  clearTimeout(debounce);
-  debounce = setTimeout(() => {
-    const q = e.target.value.trim().toLowerCase();
-    const filtered = PRODUCTS.filter(p => p.title.toLowerCase().includes(q));
-    renderProducts(filtered);
-  }, 200);
-});
+if (search) {
+  search.addEventListener('input', (e) => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const q = e.target.value.trim().toLowerCase();
+      const filtered = PRODUCTS.filter(p => p.title.toLowerCase().includes(q));
+      // if search cleared, show all
+      renderProducts(filtered.length ? filtered : PRODUCTS);
+    }, 200);
+  });
+}
 
 // ------- Cart UI elements -------
 const openCartBtn = document.getElementById('openCartBtn');
@@ -91,9 +176,11 @@ const cartCountTop = document.getElementById('cartCountTop');
 if (openCartBtn) openCartBtn.addEventListener('click', showCart);
 if (closeCart) closeCart.addEventListener('click', hideCart);
 if (continueShopping) continueShopping.addEventListener('click', hideCart);
-cartOverlay.addEventListener('click', (e) => {
-  if (e.target === cartOverlay) hideCart();
-});
+if (cartOverlay) {
+  cartOverlay.addEventListener('click', (e) => {
+    if (e.target === cartOverlay) hideCart();
+  });
+}
 
 // ------- Cart logic -------
 function addToCart(productId, qty = 1) {
@@ -106,28 +193,30 @@ function addToCart(productId, qty = 1) {
 
   saveCart(cart);
   renderCart(); // update UI
+  // update top count immediately
+  if (cartCountTop) cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  // also dispatch a small custom event for same-tab listeners
+  window.dispatchEvent(new Event('greenden_cart_updated'));
   alert(`${product.title} added to cart`);
 }
 
 function buyNow(productId) {
-  // add single item and proceed to checkout
-  const cart = [];
   const product = PRODUCTS.find(p => p.id === productId);
   if (!product) return;
-  cart.push({ id: productId, title: product.title, price: product.price, qty: 1 });
+  const cart = [{ id: productId, title: product.title, price: product.price, qty: 1 }];
   saveCart(cart);
   renderCart();
   showCart();
   // simulate going to checkout (demo)
-  setTimeout(() => {
-    checkout();
-  }, 400);
+  setTimeout(() => checkout(), 400);
 }
 
 function removeFromCart(productId) {
   const cart = getCart().filter(i => i.id !== productId);
   saveCart(cart);
   renderCart();
+  if (cartCountTop) cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  window.dispatchEvent(new Event('greenden_cart_updated'));
 }
 
 function updateQty(productId, qty) {
@@ -137,24 +226,27 @@ function updateQty(productId, qty) {
   item.qty = qty < 1 ? 1 : qty;
   saveCart(cart);
   renderCart();
+  if (cartCountTop) cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  window.dispatchEvent(new Event('greenden_cart_updated'));
 }
 
 function clearCart() {
   saveCart([]);
   renderCart();
+  if (cartCountTop) cartCountTop.textContent = '0';
+  window.dispatchEvent(new Event('greenden_cart_updated'));
 }
 
 // ------- Render cart panel -------
 function renderCart() {
   const cart = getCart();
+  if (!cartList) return;
   cartList.innerHTML = '';
 
   if (cart.length === 0) {
     cartList.innerHTML = `<p class="text-gray-600">Your cart is empty.</p>`;
     cartSubtotal.textContent = formatINR(0);
-    cartCountTop.textContent = '0';
-    localStorage.setItem('greenden_cart', JSON.stringify(cart)); // ensure consistency
-    // update mini cart in index.js via storage event
+    if (cartCountTop) cartCountTop.textContent = '0';
     return;
   }
 
@@ -206,19 +298,21 @@ function renderCart() {
   });
 
   cartSubtotal.textContent = formatINR(subtotal);
-  cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  if (cartCountTop) cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
 
-  // notify other pages (mini cart)
+  // ensure localStorage is up to date
   saveCart(cart);
 }
 
 // show/hide cart overlay
 function showCart() {
-  cartOverlay.classList.remove('hidden');
-  renderCart();
+  if (cartOverlay) {
+    cartOverlay.classList.remove('hidden');
+    renderCart();
+  }
 }
 function hideCart() {
-  cartOverlay.classList.add('hidden');
+  if (cartOverlay) cartOverlay.classList.add('hidden');
 }
 
 // Checkout (demo)
@@ -228,31 +322,25 @@ function checkout() {
     alert('Your cart is empty.');
     return;
   }
-  // In a real app, you'd send cart to server / payment gateway
-  let summary = 'Order summary:\\n';
-  cart.forEach(it => summary += `${it.title} x ${it.qty} — ${formatINR(it.price * it.qty)}\\n`);
-  summary += `\\nSubtotal: ${formatINR(cart.reduce((s, i) => s + i.price * i.qty, 0))}`;
-  alert('Checkout (demo) —\\n' + summary);
-  // after demo checkout, clear cart
+  let summary = 'Order summary:\n';
+  cart.forEach(it => summary += `${it.title} x ${it.qty} — ${formatINR(it.price * it.qty)}\n`);
+  summary += `\nSubtotal: ${formatINR(cart.reduce((s, i) => s + i.price * i.qty, 0))}`;
+  alert('Checkout (demo) —\n' + summary);
   clearCart();
   hideCart();
 }
 
 // initialize UI values
 (function init() {
-  // cart count top
   const cart = getCart();
-  cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  if (cartCountTop) cartCountTop.textContent = cart.reduce((s, i) => s + i.qty, 0);
 
-  // open cart button
   const openCartBtn = document.getElementById('openCartBtn');
   if (openCartBtn) openCartBtn.addEventListener('click', showCart);
 
-  // close cart button
   const closeCartBtn = document.getElementById('closeCart');
   if (closeCartBtn) closeCartBtn.addEventListener('click', hideCart);
 
-  // checkout button
   const checkoutButton = document.getElementById('checkoutBtn');
   if (checkoutButton) checkoutButton.addEventListener('click', checkout);
 })();
@@ -265,4 +353,13 @@ window.addEventListener('storage', (e) => {
     const topCount = document.getElementById('cartCountTop');
     if (topCount) topCount.textContent = totalQty;
   }
+});
+
+// custom event usage: update mini cart in same tab (index.js listens for storage; but index.js may not be loaded on this page)
+// dispatch greenden_cart_updated when cart changes
+window.addEventListener('greenden_cart_updated', () => {
+  const cart = getCart();
+  const totalQty = cart.reduce((s, it) => s + it.qty, 0);
+  const topCount = document.getElementById('cartCountTop');
+  if (topCount) topCount.textContent = totalQty;
 });

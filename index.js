@@ -5,10 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const closenav = document.getElementById('closenav');
   const miniCartCount = document.getElementById('miniCartCount');
 
-  // If sidenav missing, nothing to do
   if (!sidenav) return;
 
-  // Make sure hidden by default
+  // ensure sidenav is hidden by default
   if (!sidenav.classList.contains('translate-x-full') && !sidenav.classList.contains('translate-x-0')) {
     sidenav.classList.add('translate-x-full');
   }
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function openMenu() {
     sidenav.classList.remove('translate-x-full');
     sidenav.classList.add('translate-x-0');
-    // lock page scroll
     document.body.style.overflow = 'hidden';
   }
 
@@ -26,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
-  // attach both click and touchstart to be responsive on mobile
+  // attach both click and touchstart for responsiveness
   if (menuicon) {
     menuicon.addEventListener('click', (e) => {
       e.preventDefault();
@@ -59,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // close on Escape key
+  // close on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeMenu();
   });
@@ -67,6 +65,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // hide menu when screen resized to desktop
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 768) closeMenu();
+  });
+
+  // nav links should navigate and close menu (fixes the "stuck" behaviour)
+  const navLinks = sidenav.querySelectorAll('.nav-link');
+  navLinks.forEach(a => {
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const href = a.getAttribute('href');
+      closeMenu();
+      // small timeout to let close animation start, then navigate
+      setTimeout(() => {
+        window.location.href = href;
+      }, 160);
+    });
+    a.addEventListener('touchstart', (ev) => {
+      ev.preventDefault();
+      const href = a.getAttribute('href');
+      closeMenu();
+      setTimeout(() => {
+        window.location.href = href;
+      }, 160);
+    }, { passive: false });
   });
 
   // update mini cart count from localStorage
