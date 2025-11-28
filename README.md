@@ -1,4 +1,4 @@
-# GREENDEN-WEEK-3
+PRATICE WITH JS
 🌿 Greenden — Modern Plant Store Website
 
 Greenden is a clean, modern, and responsive plant-shop website built using HTML, CSS, and Tailwind CSS.
