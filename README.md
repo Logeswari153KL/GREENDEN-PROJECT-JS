@@ -47,7 +47,7 @@ Greenden/
 
 Paste your GitHub Pages link here:
 
- https://logeswari153kl.github.io/GREENDEN-PROJECT-TAILWIND-CSS/
+ https://logeswari153kl.github.io/GREENDEN-PROJECT-JS/
 
 
 
